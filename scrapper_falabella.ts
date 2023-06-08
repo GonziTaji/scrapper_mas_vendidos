@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom';
-import fs from 'fs';
+import * as fs from 'fs';
 
 main();
 
@@ -22,8 +22,8 @@ async function main() {
     try {
         const data = JSON.parse(el.innerHTML);
 
-        fs.writeFileSync('out/data_falabella.json', JSON.stringify(data, null, 4));
-        fs.writeFileSync('out/products_falabella.json', JSON.stringify(data.props.pageProps.results , null, 4));
+        fs.writeFileSync('data/data_falabella.json', JSON.stringify(data, null, 4));
+        fs.writeFileSync('data/products_falabella.json', JSON.stringify(data.props.pageProps.results , null, 4));
     } catch(e) {
         console.error('data is not a valid JSON. Data: ' + el.innerHTML);
         return;

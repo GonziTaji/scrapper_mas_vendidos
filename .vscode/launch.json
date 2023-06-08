@@ -8,11 +8,9 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            
-            "preLaunchTask": "parser"
+            "program": "${workspaceFolder}/scrapper_amazon.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": ["${workspaceFolder}/out/**/*.js"]
         }
     ]
 }
