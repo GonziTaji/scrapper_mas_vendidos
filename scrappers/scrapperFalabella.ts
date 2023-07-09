@@ -2,7 +2,9 @@ import { JSDOM } from 'jsdom';
 import { ProductData } from '../types';
 
 export default async function scrapperFalabella(category: string): Promise<ProductData[]> {
-    const dom = await JSDOM.fromURL('https://www.falabella.com/falabella-cl/category/' + category);
+    const url = `https://www.falabella.com/falabella-cl/category/${category}?sortBy=product.averageOverallRating%2Cdesc`;
+
+    const dom = await JSDOM.fromURL(url);
 
     const document = dom.window.document;
 

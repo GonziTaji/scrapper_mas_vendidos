@@ -4,15 +4,19 @@
   "description": "",
   "main": "main.js",
   "scripts": {
+    "start": "npx ts-node main.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/request-promise": "^4.1.48",
     "axios": "^1.4.0",
     "exceljs": "^4.3.0",
     "jsdom": "^22.1.0",
     "prettier": "^2.8.8",
+    "puppeteer": "^20.8.0",
+    "request-promise": "^4.2.6",
     "ts-node": "^10.9.1",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
   },
