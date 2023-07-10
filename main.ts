@@ -1,8 +1,7 @@
-import * as fs from 'fs';
-import * as XLSX from 'xlsx';
-import scrapperAmazon from './scrappers/scrapperAmazon';
+import { createExcel } from './lib';
+import scrapperAliexpress from './scrappers/scrapperAliexpress';
 import scrapperFalabella from './scrappers/scrapperFalabella';
-import { Category, ProductData, ScrapperFn } from './types';
+import { Category, ExcelData, ProductData, ScrapperFn } from './types';
 
 main();
 
@@ -20,10 +19,18 @@ async function main() {
         { label: 'Quadcopters & Multirotors', name: 'Best-Sellers-Toys-Games-Hobby-RC-Quadcopters-Multirotors/zgbs/toys-and-games/11608080011/' },
     ];
 
+    const aliexpressCategories = [
+        { label: 'cocina comedor y bar', name: '204003396/kitchen-dining-bar.html' },
+        { label: 'accesorios smartphone', name: '204030002/mobile-phone-accessories.html' },
+        { label: 'mouse y teclados', name: '204004469/mouse-keyboards.html' },
+        { label: 'smartwatches', name: '204011179/smart-watches.html' }
+    ]
+
     /** number is delay */
     const input: [{ label: string; fn: ScrapperFn }, Category[], number][] = [
-        // [{ label: 'Falabella', fn: scrapperFalabella }, falabellaCategories, 0],
-        [{ label: 'Amazon', fn: scrapperAmazon }, amazonCategories, 0]
+        [{ label: 'Falabella', fn: scrapperFalabella }, falabellaCategories, 0],
+        // [{ label: 'Amazon', fn: scrapperAmazon }, amazonCategories, 0],
+        [{ label: 'Aliexpress', fn: scrapperAliexpress }, aliexpressCategories, 3]
     ];
 
     const output: ExcelData[]= [];
@@ -69,28 +76,7 @@ async function main() {
         return 0;
     }
 
-    fs.writeFileSync('data/output.json', JSON.stringify(output, null, 4));
-
-    var ws = XLSX.utils.json_to_sheet(output);
-
-    const rowDataStart = 1; // headers at 0
-    const lastRow = rowDataStart + output.length - 1;
-
-    const photoUrlColumn = Object.keys(output[0]).indexOf('photo');
-
-    const photoUrlRange: XLSX.Range = { s: { c: photoUrlColumn, r: 1 }, e: { c: photoUrlColumn, r: lastRow } };
-    const photoDisplayRange: XLSX.Range = { s: { c: 0, r: 1 }, e: { c: 0, r: lastRow } };
-
-    const encodedPhotoUrlRange = XLSX.utils.encode_range(photoUrlRange);
-
-    XLSX.utils.sheet_set_array_formula(ws, photoDisplayRange, `IMAGE(${encodedPhotoUrlRange})`);
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "productos");
-
-    const filepath = './data/output.xlsx';
-
-    const response = XLSX.writeFile(wb, filepath);
+    const response = createExcel(output, './data/output.xlsx');
 
     console.log(response);
     // https://docs.sheetjs.com/docs/csf/features/formulae
@@ -102,10 +88,4 @@ async function main() {
 
 function resolveInSeconds(seconds: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, seconds*1000));
-}
-
-interface ExcelData extends ProductData {
-    photo_display: string;
-    category: string;
-    source: string;
 }

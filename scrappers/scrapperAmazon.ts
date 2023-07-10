@@ -40,6 +40,7 @@ export default async function scrapperAmazon(category: string): Promise<ProductD
 
         for (let i = 0; i < photoImgEls.length; i++) {
             data.push({
+                position: i+1,
                 name: nameLinkEls[i].textContent.replace('', '').replace(' ', ''),
                 url: 'https://www.amazon.com' + nameLinkEls[i].getAttribute('href'),
                 photo: photoImgEls[i]?.getAttribute('src'),

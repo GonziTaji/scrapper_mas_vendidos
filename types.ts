@@ -1,11 +1,19 @@
 export interface ProductData {
-    name: string | null | undefined,
-    url: string | null | undefined,
-    photo: string | null | undefined,
-    price: string | null | undefined,
-    stars: string | null | undefined,
-    reviews: string | null | undefined,
-    prices?: { type: string, price: string }[] // falabella price data
+    position: number;
+    name: string | null | undefined;
+    url: string | null | undefined;
+    photo: string | null | undefined;
+    price: string | null | undefined;
+    stars: string | null | undefined;
+    reviews: string | null | undefined;
+    prices?: { type: string, price: string }[];
+    sold?: string;
+}
+
+export interface ExcelData extends ProductData {
+    photo_display: string;
+    category: string;
+    source: string;
 }
 
 export interface Category {

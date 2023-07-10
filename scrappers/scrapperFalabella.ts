@@ -17,7 +17,8 @@ export default async function scrapperFalabella(category: string): Promise<Produ
 
     const data: FalabellaNextData = JSON.parse(el.innerHTML);
 
-    return data.props.pageProps.results.map(product => ({
+    return data.props.pageProps.results.map((product, i) => ({
+        position: i+1,
         name: product.displayName,
         url: product.url,
         photo: product.mediaUrls[0],
