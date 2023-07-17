@@ -1,4 +1,5 @@
 import { JSDOM } from 'jsdom';
+import { getDigits } from '../lib';
 import { ProductData } from '../types';
 
 export default async function scrapperFalabella(category: string): Promise<ProductData[]> {
@@ -22,7 +23,7 @@ export default async function scrapperFalabella(category: string): Promise<Produ
         name: product.displayName,
         url: product.url,
         photo: product.mediaUrls[0],
-        price: product.prices[0].price[0],
+        price: getDigits(product.prices[0].price[0]),
         prices: product.prices.map(price => ({ type: price.type, price: price.price[0] })),
         reviews: product.totalReviews || '0',
         stars: product.rating || 'none'

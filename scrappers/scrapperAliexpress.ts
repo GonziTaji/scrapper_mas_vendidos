@@ -1,4 +1,5 @@
 import { JSDOM } from 'jsdom';
+import { getDigits } from '../lib';
 import { ProductData } from '../types';
 
 export default async function scrapperAliexpress(category: string, retried?: boolean): Promise<ProductData[]> {
@@ -62,7 +63,9 @@ export default async function scrapperAliexpress(category: string, retried?: boo
             if (!itemData.price && itemData.prices[0]) {
                 itemData.price = itemData.prices[0].price;
             }
-    
+
+            itemData.price = getDigits(itemData.price);
+
             data.push(itemData);
         }
     } catch (e) {

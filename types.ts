@@ -3,7 +3,7 @@ export interface ProductData {
     name: string | null | undefined;
     url: string | null | undefined;
     photo: string | null | undefined;
-    price: string | null | undefined;
+    price: string | number | null | undefined;
     stars: string | null | undefined;
     reviews: string | null | undefined;
     prices?: { type: string, price: string }[];

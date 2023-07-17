@@ -1,6 +1,9 @@
-import * as fs from 'fs';
 import * as XLSX from 'xlsx';
 import { ExcelData } from './types';
+
+export function getDigits(value: any) {
+    return parseInt(String(value).replace(/([^\d])/g, ''));
+}
 
 export function createExcel(input: ExcelData[], filePath: string) {
     var ws = XLSX.utils.json_to_sheet(input);
@@ -16,6 +19,10 @@ export function createExcel(input: ExcelData[], filePath: string) {
     const encodedPhotoUrlRange = XLSX.utils.encode_range(photoUrlRange);
 
     XLSX.utils.sheet_set_array_formula(ws, photoDisplayRange, `IMAGE(${encodedPhotoUrlRange})`);
+
+    for (let i = 2; i < input.length + 2; i++) {
+        ws["F" + i].z = '"$"#,##0_);\\("$"#,##0\\)';
+    }
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "productos");

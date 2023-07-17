@@ -1,3 +1,4 @@
+import { readFileSync, writeFileSync } from 'fs';
 import { createExcel } from './lib';
 import scrapperAliexpress from './scrappers/scrapperAliexpress';
 import scrapperFalabella from './scrappers/scrapperFalabella';
@@ -6,6 +7,12 @@ import { Category, ExcelData, ProductData, ScrapperFn } from './types';
 main();
 
 async function main() {
+    return (() => {
+        const r = readFileSync('./data/output.json');
+        const s = JSON.parse(r.toString());
+        createExcel(s, './data/test.xlsx');
+    })();
+
     const falabellaCategories = [
         { label: 'Wearables', name: 'cat7190053'},
         { label: 'Audifonos inalámbricos', name: 'cat1640002' },
@@ -75,6 +82,8 @@ async function main() {
         console.log('no results');
         return 0;
     }
+
+    writeFileSync('./data/output.json', JSON.stringify(output));
 
     const response = createExcel(output, './data/output.xlsx');
 
