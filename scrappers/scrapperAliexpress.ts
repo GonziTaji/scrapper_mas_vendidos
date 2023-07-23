@@ -2,13 +2,10 @@ import { JSDOM } from 'jsdom';
 import { getDigits } from '../lib';
 import { ProductData } from '../types';
 
-export default async function scrapperAliexpress(category: string, retried?: boolean): Promise<ProductData[]> {
+export default async function scrapperAliexpress(url: string, retried?: boolean): Promise<ProductData[]> {
     const data: ProductData[] = [];
 
     try {
-
-        const url = `https://es.aliexpress.com/category/${category}?sortType=total_tranpro_desc`;
-
         const dom = await JSDOM.fromURL(url);
 
         const document = dom.window.document;
@@ -17,7 +14,7 @@ export default async function scrapperAliexpress(category: string, retried?: boo
 
         if (!itemElements.length && !retried) {
             console.log('no items found. retrying');
-            return scrapperAliexpress(category, true);
+            return scrapperAliexpress(url, true);
         }
 
         console.log('items count: ' + itemElements.length);
