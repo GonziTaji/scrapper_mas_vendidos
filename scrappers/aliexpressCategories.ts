@@ -35,7 +35,7 @@ export default async function aliexpressCategories(): Promise<void> {
         category.grandparent_name = tmpEl.textContent;
         category.grandparent_url = 'https://' + tmpEl.getAttribute('href').replace('https://', '').replace('//', '');
 
-        const parentCategories = Array.from(document.querySelectorAll('.sub-cate-items'));
+        const parentCategories = Array.from(grandparentCategory.querySelectorAll('.sub-cate-items'));
 
         for (const parentCategory of parentCategories) {
             tmpEl = parentCategory.querySelector('.sub-cate-items dt a');
