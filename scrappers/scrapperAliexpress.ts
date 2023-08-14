@@ -2,7 +2,9 @@ import { JSDOM } from 'jsdom';
 import { getDigits } from '../lib';
 import { ProductData } from '../types';
 
-export default async function scrapperAliexpress(url: string, retried?: boolean): Promise<ProductData[]> {
+export default async function scrapperAliexpress(url: string, retries: number = 0): Promise<ProductData[]> {
+    const max_retries = 5;
+
     const data: ProductData[] = [];
 
     try {
@@ -12,9 +14,12 @@ export default async function scrapperAliexpress(url: string, retried?: boolean)
 
         const itemElements = document.querySelectorAll('.list--gallery--34TropR > a');
 
-        if (!itemElements.length && !retried) {
-            console.log('no items found. retrying');
-            return scrapperAliexpress(url, true);
+        if (!itemElements.length && retries < max_retries) {
+            console.log('no items found. retrying in 3 seconds');
+            return new Promise(resolve => setTimeout(() => {
+                console.log(`retrying (${retries}/${max_retries})...'`);
+                scrapperAliexpress(url, ++retries).then(resolve)
+            }, 3000));
         }
 
         console.log('items count: ' + itemElements.length);
@@ -25,13 +30,15 @@ export default async function scrapperAliexpress(url: string, retried?: boolean)
             const itemData: ProductData = {
                 position: i+1,
                 name: itemEl.querySelector('[class*=manhattan--titleText]')?.textContent,
-                url: itemEl.getAttribute('href').replace('//', 'https://'),
-                photo: itemEl.querySelector('.product-img')?.getAttribute('src').replace('//', 'https://'),
+                url: itemEl.getAttribute('href')?.replace('//', 'https://'),
+                photo: itemEl.querySelector('.product-img')?.getAttribute('src')?.replace('//', 'https://'),
                 price: '',
                 stars: itemEl.querySelector('[class*=manhattan--evaluation]')?.textContent,
                 reviews: '',
                 prices: [],
-                sold: itemEl.querySelector('[class*=manhattan--trade]')?.textContent.split(' ')[0],
+                sold: itemEl.querySelector('[class*=manhattan--trade]')?.textContent?.split(' ')[0],
+                category: '',
+                source: 'Aliexpress'
             };
 
             const priceElements = [
@@ -46,18 +53,18 @@ export default async function scrapperAliexpress(url: string, retried?: boolean)
             for (const element of priceElements) {
                 const [_, priceType] = element.className.split('--');
     
-                const priceValue = element.textContent.match(/\d/g)?.join('');
+                const priceValue = element.textContent?.match(/\d/g)?.join('');
     
                 if (priceValue) {
                     if (priceType === 'subPrice') {
                         itemData.price = priceValue;
                     } else {
-                        itemData.prices.push({ type: priceType.replace('-', ' '), price: priceValue });
+                        itemData.prices?.push({ type: priceType.replace('-', ' '), price: priceValue });
                     }
                 }
             }
     
-            if (!itemData.price && itemData.prices[0]) {
+            if (!itemData.price && itemData.prices && itemData.prices[0]) {
                 itemData.price = itemData.prices[0].price;
             }
 

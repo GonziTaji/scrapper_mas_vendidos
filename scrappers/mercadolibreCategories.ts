@@ -57,3 +57,16 @@ export default async function mercadoLibreCategories(): Promise<void> {
 
     // XLSX.writeFile(wb, './data/categories.xlsx');
 }
+
+function listCategoriesOnBestSellersPage() {
+    var linksEl = document.querySelectorAll('.ui-search-filter-container a');
+    
+    var links = [];
+    
+    for (var linkEl of linksEl) {
+        links.push({
+            label: linkEl.textContent,
+            name: linkEl.getAttribute('href')
+        });
+    }
+}

@@ -80,17 +80,9 @@ import { ElementHandle, launch } from 'puppeteer';
 
     await page.goto('https://es.aliexpress.com');
 
-    
-    console.log('waiting .categories-list-box .cl-item');
-    const s = await page.waitForSelector('.categories-list-box .cl-item');
-    console.log('hovering');
-    s?.focus();
-    s?.hover();
-    await page.hover('.categories-content-title');
-    
-    console.log('waiting sub crate items');
-    await page.waitForSelector('.sub-cate-items');
-    console.log('waited sub crate items');
+    const s = await page.waitForSelector('.categories-list-box > dl');
+
+    console.log('s', await s.evaluate(el => el.innerHTML));
 
     const categories = await page.evaluate(() => {
         const grandparentCategories = Array.from(document.querySelectorAll('.categories-list-box > dl'));
@@ -142,7 +134,7 @@ import { ElementHandle, launch } from 'puppeteer';
         return categories;
     })
 
-    // console.log('categories', categories);
+    console.log('categories', categories);
 
     browser.close();
 
