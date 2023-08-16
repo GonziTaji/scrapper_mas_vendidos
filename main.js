@@ -6,25 +6,9 @@ const { generateWorkbook, getAliexpressCategories, scrapper } = require('./src/s
 const scrapperAliexpress = require('./src/scrappers/scrapperAliexpress');
 
 const createWindow = () => {
-    ipcMain.handle('scrap', async () => {
-        const [ cat1 ] = getAliexpressCategories();
+    ipcMain.handle('scrap', () => scrap());
 
-        const categories = [ cat1 ];
-
-        const products = await scrapper(scrapperAliexpress, categories, 0, { scrapper_name: 'Aliexpress' });
-
-        return products;
-    });
-
-    ipcMain.handle('createWorkbook', (event, products) => {
-        const wb = generateWorkbook(products);
-        const fileBuffer = XLSX.write(wb, {
-            bookType: 'xlsx',
-            type: 'buffer'
-        });
-
-        return fileBuffer;
-    })
+    ipcMain.handle('createWorkbook', (_, payload) => createWorkbook(payload));
 
     const win = new BrowserWindow({
         width: 800,
@@ -49,3 +33,32 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
+
+/**
+ * 
+ * @returns {ProductData[]}
+ */
+async function scrap() {
+    const [ cat1 ] = getAliexpressCategories();
+
+    const categories = [ cat1 ];
+
+    const products = await scrapper(scrapperAliexpress, categories, 0, { scrapper_name: 'Aliexpress' });
+
+    return products;
+}
+
+/**
+ * 
+ * @param {ProductData[]} products 
+ * @returns Buffer
+ */
+async function createWorkbook(products) {
+    const wb = generateWorkbook(products);
+    const fileBuffer = XLSX.write(wb, {
+        bookType: 'xlsx',
+        type: 'buffer'
+    });
+
+    return fileBuffer;
+}

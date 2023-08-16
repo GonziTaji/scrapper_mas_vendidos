@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"
+        integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <title>Document</title>
 </head>
+
 <body>
     <p>Hello!</p>
     <button id="btn">Generate</button>
@@ -15,9 +21,26 @@
     </div>
 
     <div id="products">
-        <pre></pre>
+        <table id="datatable">
+            <thead>
+                <tr>
+                    <th>position</th>
+                    <th>name</th>
+                    <th>photo</th>
+                    <th>price</th>
+                    <th>stars</th>
+                    <th>reviews</th>
+                    <th>sold</th>
+                    <th>category</th>
+                    <th>source</th>
+                </tr>
+            </thead>
+
+            <tbody></tbody>
+        </table>
     </div>
 
     <script src='./renderer.js'></script>
 </body>
+
 </html>
