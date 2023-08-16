@@ -1,28 +1,21 @@
 {
-  "name": "app",
-  "version": "0.1.0",
-  "private": true,
+  "name": "electron_mas_vendidos",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsdom": "^21.1.1",
+    "electron": "^26.0.0"
   },
   "dependencies": {
-    "@types/node": "20.5.0",
-    "@types/react": "18.2.20",
-    "@types/react-dom": "18.2.7",
-    "eslint": "8.47.0",
-    "eslint-config-next": "13.4.15",
     "jsdom": "^22.1.0",
-    "next": "13.4.15",
     "puppeteer": "^21.0.3",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "typescript": "5.1.6",
     "xlsx": "^0.18.5"
-  },
-  "devDependencies": {
-    "@types/jsdom": "^21.1.1"
   }
 }

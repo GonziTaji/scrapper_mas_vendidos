@@ -1,12 +1,17 @@
-import { AliexpressCategories, Category, ExcelData, ProductData, ScrapperFn } from './types';
-import aliCategories from './data/ali_categories.json'
-import * as XLSX from 'xlsx';
+const aliCategories = require('./data/ali_categories.json');
+const XLSX = require('xlsx');
 
-export function getAliexpressCategories() {
+module.exports = {
+    getAliexpressCategories,
+    scrapper,
+    generateWorkbook,
+}
+
+function getAliexpressCategories() {
     // const fileBuffer = readFileSync('./data/ali_categories.json');
     // const rawCategories: AliexpressCategories[] = JSON.parse(fileBuffer.toString());
 
-    const rawCategories: AliexpressCategories[] = aliCategories;
+    const rawCategories = aliCategories;
 
     return rawCategories.map(({ category_name, category_url }) => ({
         name: category_url,
@@ -14,14 +19,21 @@ export function getAliexpressCategories() {
     }));
 }
 
-interface ScrapperInfo {
-    scrapper_name: string;
-}
-
-export async function scrapper(fn: ScrapperFn, categories: Category[], delay: number = 0, info: ScrapperInfo) {
-    const scrapperResults: ProductData[]= [];
-    let tmpResults : ProductData[];
-    let waitPromise: Promise<void> = Promise.resolve();
+/**
+ * 
+ * @param {(category: string) => Promise<ProductData[]>} fn Scrapper function
+ * @param {{name: string; label: string;}} categories 
+ * @param {number} delay 
+ * @param {{ scrapper_name: string }} info 
+ * @returns 
+ */
+async function scrapper(fn, categories, delay, info) {
+    /** @type {ProductData[]} */
+    const scrapperResults = [];
+    /** @type {ProductData[]} */
+    let tmpResults;
+    /** @type {Promise<void>} */
+    let waitPromise;
 
     for (const category of categories) {
         if (waitPromise) {
@@ -50,12 +62,12 @@ export async function scrapper(fn: ScrapperFn, categories: Category[], delay: nu
 
 /**
  * 
- * @param products 
- * @param filepath file path without extension
- * @returns 
+ * @param {ProductData[]} products
+ * @returns {XLSX.WorkBook}
  */
-export function generateWorkbook(products: ProductData[]) {
-    const output: ExcelData[] = [];
+function generateWorkbook(products) {
+    /** @type {ExcelData[]} */
+    const output = [];
 
     let tmpPrices = '';
     for (const result of products) {
@@ -65,7 +77,7 @@ export function generateWorkbook(products: ProductData[]) {
                 tmpPrices += `${price.type}: $${price.price}\n`;
             }
 
-            result.prices = tmpPrices as any;
+            result.prices = tmpPrices;
         }
 
         output.push({
@@ -83,8 +95,10 @@ export function generateWorkbook(products: ProductData[]) {
 
     const photoUrlColumn = Object.keys(output[0]).indexOf('photo');
 
-    const photoUrlRange: XLSX.Range = { s: { c: photoUrlColumn, r: 1 }, e: { c: photoUrlColumn, r: lastRow } };
-    const photoDisplayRange: XLSX.Range = { s: { c: 0, r: 1 }, e: { c: 0, r: lastRow } };
+    /** @type {XLSX.Range} */
+    const photoUrlRange = { s: { c: photoUrlColumn, r: 1 }, e: { c: photoUrlColumn, r: lastRow } };
+    /** @type {XLSX.Range} */
+    const photoDisplayRange = { s: { c: 0, r: 1 }, e: { c: 0, r: lastRow } };
 
     const encodedPhotoUrlRange = XLSX.utils.encode_range(photoUrlRange);
 
@@ -105,6 +119,46 @@ export function generateWorkbook(products: ProductData[]) {
 
 }
 
-function resolveInSeconds(seconds: number): Promise<void> {
+/**
+ * 
+ * @param {number} seconds 
+ * @returns {Promise<void>}
+ */
+function resolveInSeconds(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds*1000));
 }
+
+/**
+ * @typedef {{
+ * position: number;
+ * name: string | null | undefined;
+ * url: string | null | undefined;
+ * photo: string | null | undefined;
+ * price: string | number | null | undefined;
+ * stars: string | null | undefined;
+ * reviews: string | null | undefined;
+ * prices?: { type: string, price: string }[];
+ * sold?: string;
+ * category: string;
+ * source: string;
+ * }} ProductData
+*/
+
+/**
+ * @typedef {{
+ * position: number;
+ * name: string | null | undefined;
+ * url: string | null | undefined;
+ * photo: string | null | undefined;
+ * price: string | number | null | undefined;
+ * stars: string | null | undefined;
+ * reviews: string | null | undefined;
+ * prices?: { type: string, price: string }[];
+ * sold?: string;
+ * category: string;
+ * source: string;
+ * photo_display: string;
+ * category: string;
+ * source: string;
+ * }} ExcelData
+*/

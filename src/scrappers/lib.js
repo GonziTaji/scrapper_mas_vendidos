@@ -1,11 +1,21 @@
-import * as XLSX from 'xlsx';
-import { ExcelData } from './types';
+const XLSX = require('xlsx');
 
-export function getDigits(value: any) {
+module.exports = {
+    getDigits,
+    createExcel
+}
+
+function getDigits(value) {
     return parseInt(String(value).replace(/([^\d])/g, ''));
 }
 
-export function createExcel(input: ExcelData[], filePath: string) {
+/**
+ * 
+ * @param {ExcelData[]} input 
+ * @param {string} filePath 
+ * @returns 
+ */
+function createExcel(input, filePath) {
     var ws = XLSX.utils.json_to_sheet(input);
 
     const rowDataStart = 1; // headers at 0
@@ -13,8 +23,10 @@ export function createExcel(input: ExcelData[], filePath: string) {
 
     const photoUrlColumn = Object.keys(input[0]).indexOf('photo');
 
-    const photoUrlRange: XLSX.Range = { s: { c: photoUrlColumn, r: 1 }, e: { c: photoUrlColumn, r: lastRow } };
-    const photoDisplayRange: XLSX.Range = { s: { c: 0, r: 1 }, e: { c: 0, r: lastRow } };
+    /** @type {XLSX.Range} */
+    const photoUrlRange = { s: { c: photoUrlColumn, r: 1 }, e: { c: photoUrlColumn, r: lastRow } };
+    /** @type {XLSX.Range} */
+    const photoDisplayRange = { s: { c: 0, r: 1 }, e: { c: 0, r: lastRow } };
 
     const encodedPhotoUrlRange = XLSX.utils.encode_range(photoUrlRange);
 

@@ -1,11 +1,19 @@
-import { JSDOM } from 'jsdom';
-import { getDigits } from '../lib';
-import { ProductData } from '../types';
+const { JSDOM } = require('jsdom');
+const { getDigits } = require('./lib');
 
-export default async function scrapperAliexpress(url: string, retries: number = 0): Promise<ProductData[]> {
+module.exports = scrapperAliexpress;
+
+/**
+ * 
+ * @param {string} url 
+ * @param {number} retries 
+ * @returns Promise<ProductData[]>
+ */
+async function scrapperAliexpress(url, retries = 0) {
     const max_retries = 5;
 
-    const data: ProductData[] = [];
+    /** @type {ProductData[]} */
+    const data = [];
 
     try {
         const dom = await JSDOM.fromURL(url);
@@ -27,7 +35,8 @@ export default async function scrapperAliexpress(url: string, retries: number = 
         for (let i = 0; i < itemElements.length; i++) {
             const itemEl = itemElements[i];
     
-            const itemData: ProductData = {
+            /** @type {ProductData} */
+            const itemData = {
                 position: i+1,
                 name: itemEl.querySelector('[class*=manhattan--titleText]')?.textContent,
                 url: itemEl.getAttribute('href')?.replace('//', 'https://'),
@@ -51,15 +60,16 @@ export default async function scrapperAliexpress(url: string, retries: number = 
             }
     
             for (const element of priceElements) {
+                // eslint-disable-next-line no-unused-vars
                 const [_, priceType] = element.className.split('--');
     
-                const priceValue = element.textContent?.match(/\d/g)?.join('');
+                const priceValue = element.textContent && element.textContent.match(/\d/g).join('');
     
                 if (priceValue) {
                     if (priceType === 'subPrice') {
                         itemData.price = priceValue;
                     } else {
-                        itemData.prices?.push({ type: priceType.replace('-', ' '), price: priceValue });
+                        itemData.prices.push({ type: priceType.replace('-', ' '), price: priceValue });
                     }
                 }
             }
