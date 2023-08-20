@@ -2,14 +2,10 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const XLSX = require('xlsx');
-const { generateWorkbook, getAliexpressCategories, scrapper } = require('./src/scrapper');
+const { generateWorkbook, getAliexpressCategoriesByParent, scrapper } = require('./src/scrapper');
 const scrapperAliexpress = require('./src/scrappers/scrapperAliexpress');
 
 const createWindow = () => {
-    ipcMain.handle('scrap', () => scrap());
-
-    ipcMain.handle('createWorkbook', (_, payload) => createWorkbook(payload));
-
     const win = new BrowserWindow({
         width: 800,
         height: 600,
@@ -18,7 +14,13 @@ const createWindow = () => {
         },
     });
 
+    ipcMain.handle('scrap', (_, categories) => scrap(categories, createLogger(win)));
+    ipcMain.handle('createWorkbook', (_, payload) => createWorkbook(payload));
+    ipcMain.handle('get-categories', (_, source) => getCategories(source))
+
     win.loadFile('index.html');
+
+    return win;
 };
 
 app.whenReady().then(() => {
@@ -35,17 +37,26 @@ app.on('window-all-closed', () => {
 });
 
 /**
- * 
+ * @param {{name: string, label: string}[]}
+ * @param {{ (message) => void }} logger
  * @returns {ProductData[]}
  */
-async function scrap() {
-    const [ cat1 ] = getAliexpressCategories();
-
-    const categories = [ cat1 ];
-
-    const products = await scrapper(scrapperAliexpress, categories, 0, { scrapper_name: 'Aliexpress' });
+async function scrap(categories, logger) {
+    const products = await scrapper(scrapperAliexpress, categories, 1, { scrapper_name: 'Aliexpress', logger });
 
     return products;
+}
+
+/**
+ * 
+ * @param {BrowserWindow} win 
+ */
+function createLogger(win) {
+    return (message) => win.webContents.send('process-message', appendTimestamp(message));
+}
+
+function appendTimestamp(text) {
+    return (new Date()).toISOString() + ': ' + text;
 }
 
 /**
@@ -61,4 +72,14 @@ async function createWorkbook(products) {
     });
 
     return fileBuffer;
+}
+
+function getCategories(source) {
+    switch (source) {
+        case 'aliexpress': 
+            return getAliexpressCategoriesByParent();
+        
+        default:
+            throw new Error('unhandled category source: ' + source);
+    }
 }

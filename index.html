@@ -13,14 +13,21 @@
 </head>
 
 <body>
-    <p>Hello!</p>
-    <button id="btn">Generate</button>
+    <div id="category-wrapper" style="border: 1px solid black; padding: 0.25rem"></div>
 
-    <div id="loading-indicator" style="visibility: hidden;">
+    <div style="display:flex; gap:0.25rem; margin: 1rem 0;">
+        <button id="btn">Generate</button>
+        <button id="download-btn" disabled>Download</button>
+    </div>
+
+    <div id="loading-indicator" style="display: none; margin: 1rem 0;">
         <span>Loading...</span>
     </div>
 
-    <div id="products">
+    <textarea id="messages-container" style="margin: 2rem 0; border: 1px solid black; height: 120px; width: 100%; overflow: scroll; resize: vertical; display: none;" readonly>
+    </textarea>
+
+    <div id="products" style="padding:1rem; border:1px solid gray;">
         <table id="datatable">
             <thead>
                 <tr>
@@ -41,6 +48,22 @@
     </div>
 
     <script src='./renderer.js'></script>
+
+    <script type="module">
+        import CategorySelector from './src/components/CategorySelector.js';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+        });
+
+        async function init() {
+            const categories = await window.electronAPI.getCategories('aliexpress');
+
+            console.log('categories', categories);
+
+            new CategorySelector('#category-wrapper', categories);
+        }
+    </script>
 </body>
 
 </html>

@@ -3,14 +3,43 @@ const XLSX = require('xlsx');
 
 module.exports = {
     getAliexpressCategories,
+    getAliexpressCategoriesByParent,
     scrapper,
     generateWorkbook,
 }
 
-function getAliexpressCategories() {
-    // const fileBuffer = readFileSync('./data/ali_categories.json');
-    // const rawCategories: AliexpressCategories[] = JSON.parse(fileBuffer.toString());
+/**
+ * @returns {ParentChildrenCategory[]}
+ */
+function getAliexpressCategoriesByParent() {
+    const rawCategories = aliCategories;
 
+    const parents = new Map();
+
+    for (const category of rawCategories) {
+        const parent = category.parent_name;
+
+        if (parents.has(parent)) {
+            parents.set(parent, [...parents.get(parent), category])
+        } else {
+            parents.set(parent, [category])
+        }
+    }
+
+    /** @type {ParentChildrenCategory[]} */
+    const categories = [];
+
+    parents.forEach((children, parentName) => {
+        categories.push({
+            category_name: parentName,
+            children,
+        })
+    })
+
+    return categories;
+}
+
+function getAliexpressCategories() {
     const rawCategories = aliCategories;
 
     return rawCategories.map(({ category_name, category_url }) => ({
@@ -24,16 +53,18 @@ function getAliexpressCategories() {
  * @param {(category: string) => Promise<ProductData[]>} fn Scrapper function
  * @param {{name: string; label: string;}} categories 
  * @param {number} delay 
- * @param {{ scrapper_name: string }} info 
- * @returns 
+ * @param {{ scrapper_name: string, logger: (message: string) => void }} options 
+ * @returns {Promise<ProductData[]>}
  */
-async function scrapper(fn, categories, delay, info) {
+async function scrapper(fn, categories, delay, options) {
     /** @type {ProductData[]} */
     const scrapperResults = [];
     /** @type {ProductData[]} */
     let tmpResults;
     /** @type {Promise<void>} */
     let waitPromise;
+
+    let processedCount = 0;
 
     for (const category of categories) {
         if (waitPromise) {
@@ -44,15 +75,17 @@ async function scrapper(fn, categories, delay, info) {
 
         waitPromise = resolveInSeconds(delay || 0);
 
-        console.log(`Scrapping: ${category.label}`);
+        options.logger(`(${++processedCount}/${categories.length}) Reading category ${category.label}...`);
 
         tmpResults = await fn(category.name);
+
+        options.logger(`Got ${tmpResults.length} products from category`);
 
         for (const result of tmpResults) {
             scrapperResults.push({
                 ...result,
                 category: category.label,
-                source: info.scrapper_name || 'unknown',
+                source: options.scrapper_name || 'unknown',
             });
         }
     }
@@ -162,3 +195,15 @@ function resolveInSeconds(seconds) {
  * source: string;
  * }} ExcelData
 */
+
+/** @typedef {{
+ *      name: string,
+ *      children: {
+ *          grandparent_name: string;
+ *          grandparent_url: string;
+ *          parent_name: string;
+ *          parent_url: string;
+ *          category_name: string;
+ *          category_url: string;
+ *      }[]
+ * }} ParentChildrenCategory */
