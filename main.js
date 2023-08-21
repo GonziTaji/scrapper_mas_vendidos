@@ -5,6 +5,8 @@ const XLSX = require('xlsx');
 const { generateWorkbook, getAliexpressCategoriesByParent, scrapper } = require('./src/scrapper');
 const scrapperAliexpress = require('./src/scrappers/scrapperAliexpress');
 
+if (require('electron-squirrel-startup')) app.quit();
+
 const createWindow = () => {
     const win = new BrowserWindow({
         width: 800,
