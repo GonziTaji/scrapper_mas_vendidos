@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-    scrap: (categories) => ipcRenderer.invoke('scrap', categories),
+    scrap: (source, categories) => ipcRenderer.invoke('scrap', source, categories),
     createWorkbook: (products) => ipcRenderer.invoke('createWorkbook', products),
     onInfoMessage: (callback) => ipcRenderer.on('process-message', callback),
     getCategories: (source) => ipcRenderer.invoke('get-categories', source),

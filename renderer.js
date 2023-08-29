@@ -3,8 +3,8 @@ const downloadBtn = document.querySelector('#download-btn');
 const loadingIndicator = document.querySelector('#loading-indicator');
 const messagesContainer = document.querySelector('#messages-container');
 
-/** @type {CategorySelector} */
-let categorySelector;
+/** @type {{ [source: string]: CategorySelector}} */
+let categorySelectors = {};
 /** @type {ProductData[]} */
 let products = [];
 
@@ -36,8 +36,8 @@ window.addEventListener('DOMContentLoaded', () => {
     new DataTable('#datatable');
 
     window.electronAPI.getCategories('aliexpress').then(categories => {
-        categorySelector = new CategorySelector('#category-wrapper', categories);
-        console.log(categorySelector);
+        categorySelectors.aliexpress = new CategorySelector('#category-wrapper #aliexpress', categories);
+        console.log(categorySelectors);
     });
 });
 
@@ -55,17 +55,20 @@ window.electronAPI.onInfoMessage((_event, message) => {
 });
 
 async function getProducts() {
+    console.log('getting products');
     btn.setAttribute('disabled', true);
     loadingIndicator.style.display = '';
     messagesContainer.textContent = '';
     messagesContainer.style.display = '';
 
     /** @type {ProductData[]} */
-    products = await window.electronAPI.scrap(categorySelector.getSelection());
+    products = [];
 
-    // window.document.querySelector('#products pre').innerHTML = JSON.stringify(products, null, 4);
-
-    console.log('products', products)
+    let tmpProds = [];
+    for (const [source, categorySelector] of Object.entries(categorySelectors)) {
+        tmpProds = await window.electronAPI.scrap(source, categorySelector.getSelection());
+        products.push(...tmpProds);
+    }
 
     products.forEach((p) => {
         if (!p.sold) {

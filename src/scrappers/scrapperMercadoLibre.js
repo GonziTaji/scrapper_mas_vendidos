@@ -1,20 +1,31 @@
-import { JSDOM } from 'jsdom';
-import { getDigits } from '../lib';
-import { ProductData } from '../types';
+const { JSDOM } = require('jsdom');
 
-export default async function scrapperMercadoLibre(url: string, retried?: boolean): Promise<ProductData[]> {
-    const data: ProductData[] = [];
+
+/**
+ * @async
+ * @param {string} url
+ * @param {boolean} retried 
+ * @returns Promise<ProductData[]>
+ */
+export default async function scrapperMercadoLibre(url, retried = false) {
+    /* @type {ProductData[]} */
+    const data = [];
 
     try {
         const dom = await JSDOM.fromURL(url);
 
         const document = dom.window.document;
 
-        let anchor: HTMLAnchorElement;
-        let price: string;
-        let originalPrice: string;
-        let img: HTMLImageElement;
-        let photo: string;
+        /* @type {HTMLAnchorElement */
+        let anchor;
+        /* @type {string} */
+        let price;
+        /* @type {string} */
+        let originalPrice;
+        /* @type {HTMLImageElement} */
+        let img;
+        /* @type {string } */
+        let photo;
 
         const itemContainers = document.querySelectorAll('.ui-recommendations-card');
 

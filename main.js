@@ -16,7 +16,7 @@ const createWindow = () => {
         },
     });
 
-    ipcMain.handle('scrap', (_, categories) => scrap(categories, createLogger(win)));
+    ipcMain.handle('scrap', (_, source, categories) => scrap(source, categories, createLogger(win)));
     ipcMain.handle('createWorkbook', (_, payload) => createWorkbook(payload));
     ipcMain.handle('get-categories', (_, source) => getCategories(source))
 
@@ -39,12 +39,29 @@ app.on('window-all-closed', () => {
 });
 
 /**
+ * @param {string} source 
  * @param {{name: string, label: string}[]}
  * @param {{ (message) => void }} logger
  * @returns {ProductData[]}
  */
-async function scrap(categories, logger) {
-    const products = await scrapper(scrapperAliexpress, categories, 1, { scrapper_name: 'Aliexpress', logger });
+async function scrap(source, categories, logger) {
+    let scrapperFn;
+
+    switch (source.toLowerCase()) {
+        case 'aliexpress':
+            scrapperFn = scrapperAliexpress;
+            break;
+
+        case 'mercadolibre':
+            scrapperFn = scrapperMercadoLibre;
+            break;
+
+        default:
+            throw new Error('Invalid scrapper source: ' + source);
+    }
+
+
+    const products = await scrapper(scrapperFn, categories, 1, { scrapper_name: source, logger });
 
     return products;
 }
@@ -81,6 +98,9 @@ function getCategories(source) {
         case 'aliexpress': 
             return getAliexpressCategoriesByParent();
         
+        case 'mercadolibre':
+            return getMercadolibreCategoriesByParent();
+
         default:
             throw new Error('unhandled category source: ' + source);
     }
