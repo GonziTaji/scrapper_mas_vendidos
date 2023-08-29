@@ -1,47 +1,62 @@
-const btn = document.querySelector('#btn');
+/* global electronAPI */
+/* global DataTable */
+
+const searchBtn = document.querySelector('#btn');
 const downloadBtn = document.querySelector('#download-btn');
 const loadingIndicator = document.querySelector('#loading-indicator');
 const messagesContainer = document.querySelector('#messages-container');
 
-/** @type {CategorySelector} */
-let categorySelector;
+/** @type {{ [source: string]: CategorySelector}} */
+let categorySelectors = {};
 /** @type {ProductData[]} */
 let products = [];
 
-btn.addEventListener('click', () => {
-    getProducts();
-});
+window.addEventListener('DOMContentLoaded', init);
 
-downloadBtn.addEventListener('click', () => {
-    window.electronAPI.createWorkbook(products).then(buffer => {
+// html events
+searchBtn.addEventListener('click', getProducts);
+downloadBtn.addEventListener('click', btnDownloadOnClick);
+
+// electron events
+electronAPI.onInfoMessage(onInfoMessage);
+
+function init() {
+    new DataTable('#datatable');
+
+    getCategories('aliexpress');
+    getCategories('mercadolibre');
+}
+
+function btnDownloadOnClick() {
+    electronAPI.createWorkbook(products).then((buffer) => {
         const byteArray = new Uint8Array(buffer);
-        const a = window.document.createElement('a');
+        const a = document.createElement('a');
 
         a.href = window.URL.createObjectURL(new Blob([byteArray], { type: 'application/octet-stream' }));
         a.download = 'download.xlsx';
 
         // Append anchor to body.
-        document.body.appendChild(a)
+        document.body.appendChild(a);
         a.click();
 
         alert('File saved!');
 
         // Remove anchor from body
-        document.body.removeChild(a)
+        document.body.removeChild(a);
     });
-});
+}
 
-window.addEventListener('DOMContentLoaded', () => {
-    // eslint-disable-next-line no-undef
-    new DataTable('#datatable');
-
-    window.electronAPI.getCategories('aliexpress').then(categories => {
-        categorySelector = new CategorySelector('#category-wrapper', categories);
-        console.log(categorySelector);
+function getCategories(source) {
+    console.log('getting categories from ' + source);
+    electronAPI.getCategories(source).then((categories) => {
+        const wrapperSelector = '#category-wrapper #' + source;
+        console.log('selector', wrapperSelector);
+        categorySelectors[source] = new CategorySelector(wrapperSelector, categories);
+        console.log(categorySelectors);
     });
-});
+}
 
-window.electronAPI.onInfoMessage((_event, message) => {
+function onInfoMessage(_event, message) {
     const maxScrollTop = messagesContainer.scrollHeight - messagesContainer.clientHeight;
     const scrollDelta = maxScrollTop - messagesContainer.scrollTop;
 
@@ -52,20 +67,23 @@ window.electronAPI.onInfoMessage((_event, message) => {
     if (scrollToBottom) {
         messagesContainer.scroll(0, messagesContainer.scrollHeight);
     }
-});
+}
 
 async function getProducts() {
-    btn.setAttribute('disabled', true);
+    console.log('getting products');
+    searchBtn.setAttribute('disabled', true);
     loadingIndicator.style.display = '';
     messagesContainer.textContent = '';
     messagesContainer.style.display = '';
 
     /** @type {ProductData[]} */
-    products = await window.electronAPI.scrap(categorySelector.getSelection());
+    products = [];
 
-    // window.document.querySelector('#products pre').innerHTML = JSON.stringify(products, null, 4);
-
-    console.log('products', products)
+    let tmpProds = [];
+    for (const [source, categorySelector] of Object.entries(categorySelectors)) {
+        tmpProds = await electronAPI.scrap(source, categorySelector.getSelection());
+        products.push(...tmpProds);
+    }
 
     products.forEach((p) => {
         if (!p.sold) {
@@ -75,15 +93,14 @@ async function getProducts() {
         if (!p.stars) {
             p.stars = '';
         }
-    })
+    });
 
-    // eslint-disable-next-line no-undef
     new DataTable('#datatable', {
         data: products,
         columns: [
             { data: 'position' },
-            { data: 'name', render: (data, type, row) => `<a target="_blank" href="${row.url}">${data}</a>`},
-            { data: 'photo', render: (data) => `<img src="${data}" />`},
+            { data: 'name', render: (data, type, row) => `<a target="_blank" href="${row.url}">${data}</a>` },
+            { data: 'photo', render: (data) => `<img src="${data}" />` },
             { data: 'price' },
             { data: 'stars' },
             { data: 'reviews' },
@@ -95,7 +112,7 @@ async function getProducts() {
         destroy: true,
     });
 
-    btn.removeAttribute('disabled');
+    searchBtn.removeAttribute('disabled');
     loadingIndicator.style.display = 'none';
     messagesContainer.style.display = 'none';
 
@@ -127,12 +144,12 @@ class CategorySelector {
     getSelection() {
         const selection = [];
 
-        for (const {children} of this.categories) {
+        for (const { children } of this.categories) {
             for (const child of children) {
                 if (child.selected) {
                     selection.push({
                         name: child.category_url,
-                        label: child.category_name
+                        label: child.category_name,
                     });
                 }
             }
@@ -142,7 +159,7 @@ class CategorySelector {
     }
 
     filterCategories() {
-        const term = normalizeText(document.querySelector('#category-search').value);
+        const term = normalizeText(this.element.querySelector('.category-search').value);
         const regexp = new RegExp(term);
 
         this.visibleCategories = [];
@@ -158,7 +175,7 @@ class CategorySelector {
             if (children.length) {
                 this.visibleCategories.push({
                     category_name: category.category_name,
-                    children
+                    children,
                 });
             }
         }
@@ -170,24 +187,21 @@ class CategorySelector {
         this.element.innerHTML = '';
 
         const searchInput = document.createElement('input');
-        searchInput.id = 'category-search';
-        searchInput.style.flexGrow = '1';
+        searchInput.className = 'category-search';
         searchInput.onkeydown = ({ key }) => {
             if (key === 'Enter') {
                 this.filterCategories();
             }
-        }
+        };
 
         const btnSearch = document.createElement('button');
-        btnSearch.textContent = 'Search Category';
+        btnSearch.textContent = 'Filtrar';
         btnSearch.onclick = () => {
             this.filterCategories();
-        }
+        };
 
         const divElement = document.createElement('div');
-        divElement.style.display = 'flex';
-        divElement.style.gap = '0.5rem';
-        divElement.style.width = '320px';
+        divElement.className = 'search-wrapper';
 
         divElement.append(searchInput, btnSearch);
         console.log(divElement);
@@ -197,7 +211,7 @@ class CategorySelector {
     }
 
     renderCategories() {
-        const existingUl = document.querySelector('#categories-list');
+        const existingUl = this.element.querySelector('.categories-list');
 
         if (existingUl) {
             existingUl.remove();
@@ -216,18 +230,24 @@ class CategorySelector {
                 if (category.children) {
                     for (const child of category.children) {
                         child.selected = ev.target.checked;
-                        liElement.querySelectorAll(`input[type=checkbox]:not(#${category.category_name})`).forEach(e => e.checked = ev.target.checked);
+                        liElement
+                            .querySelectorAll(`input[type=checkbox]:not(#${category.category_name})`)
+                            .forEach((e) => (e.checked = ev.target.checked));
                     }
                 }
             };
 
-            liElement.append(checkboxElement, category.category_name);
+            const label = document.createElement('label');
+            label.setAttribute('for', category.category_name);
+            label.textContent = category.category_name;
+
+            liElement.append(checkboxElement, label);
 
             if (category.children && category.children.length) {
                 const spanElement = document.createElement('span');
                 spanElement.style.fontStyle = 'italic';
                 spanElement.style.fontSize = '0.8em';
-                spanElement.style.paddingLeft = '0.5rem';
+                spanElement.style.paddingLeft = '0.25rem';
                 spanElement.innerText = category.children.length + ' Subcategories';
 
                 liElement.append(spanElement);
@@ -238,15 +258,20 @@ class CategorySelector {
 
                 for (const child of category.children) {
                     const childLiElement = document.createElement('li');
+                    childLiElement.style = 'display: flex; align-items: center; padding 0.25rem; 0';
                     const checkboxElement = document.createElement('input');
                     checkboxElement.setAttribute('type', 'checkbox');
                     checkboxElement.id = child.category_name;
 
                     checkboxElement.onchange = (ev) => {
                         child.selected = ev.target.checked;
-                    }
+                    };
 
-                    childLiElement.append(checkboxElement, child.category_name);
+                    const label = document.createElement('label');
+                    label.setAttribute('for', child.category_name);
+                    label.textContent = child.category_name;
+
+                    childLiElement.append(checkboxElement, label);
 
                     liNodes.push(childLiElement);
                 }
@@ -255,7 +280,7 @@ class CategorySelector {
                 liElement.append(ulElement);
             }
 
-            console.log('2', { liElement });
+            // console.log('2', { liElement });
 
             return liElement;
         };
@@ -263,8 +288,8 @@ class CategorySelector {
         const ulElement = document.createElement('ul');
         ulElement.style.listStyle = 'none';
         ulElement.style.overflow = 'auto';
-        ulElement.style.height = '300px';
-        ulElement.id = 'categories-list';
+        ulElement.style.height = '400px';
+        ulElement.className = 'categories-list';
 
         const liNodes = [];
         for (const child of this.visibleCategories) {
@@ -279,7 +304,10 @@ class CategorySelector {
 
 function normalizeText(text) {
     // https://es.stackoverflow.com/questions/62031/eliminar-signos-diacr%C3%ADticos-en-javascript-eliminar-tildes-acentos-ortogr%C3%A1ficos
-    return text.normalize('NFD').replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    return text
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
 }
 
 /** @typedef {{
