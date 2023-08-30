@@ -13,9 +13,9 @@
 </head>
 
 <body>
-    <div id="category-wrapper" style="padding: 0.25rem">
-        <div id="aliexpress" style="padding: 0.25rem; border: 1px solid black;"></div>
-        <div id="mercadolibre" style="padding: 0.25rem; border: 1px solid black;"></div>
+    <div id="category-wrapper" style="display: flex; gap:0.25rem; padding: 0.25rem">
+        <div id="aliexpress" style="border: 1px solid black;"></div>
+        <div id="mercadolibre" style="border: 1px solid black;"></div>
     </div>
 
     <div style="display:flex; gap:0.25rem; margin: 1rem 0;">
@@ -52,21 +52,7 @@
 
     <script src='./renderer.js'></script>
 
-    <script type="module">
-        import CategorySelector from './src/components/CategorySelector.js';
-
-        window.addEventListener('DOMContentLoaded', () => {
-            init();
-        });
-
-        async function init() {
-            const categories = await window.electronAPI.getCategories('aliexpress');
-
-            console.log('categories', categories);
-
-            new CategorySelector('#category-wrapper', categories);
-        }
-    </script>
+    <script type="module"> </script>
 </body>
 
 </html>

@@ -2,8 +2,9 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const XLSX = require('xlsx');
-const { generateWorkbook, getAliexpressCategoriesByParent, scrapper } = require('./src/scrapper');
+const { generateWorkbook, getAliexpressCategoriesByParent, getMercadolibreCategoriesByParent, scrapper } = require('./src/scrapper');
 const scrapperAliexpress = require('./src/scrappers/scrapperAliexpress');
+const scrapperMercadoLibre = require('./src/scrappers/scrapperMercadoLibre');
 
 if (require('electron-squirrel-startup')) app.quit();
 

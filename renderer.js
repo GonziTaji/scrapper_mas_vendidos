@@ -1,21 +1,36 @@
-const btn = document.querySelector('#btn');
+const searchBtn = document.querySelector('#btn');
 const downloadBtn = document.querySelector('#download-btn');
 const loadingIndicator = document.querySelector('#loading-indicator');
 const messagesContainer = document.querySelector('#messages-container');
+
+//declare electronAPI = {};
 
 /** @type {{ [source: string]: CategorySelector}} */
 let categorySelectors = {};
 /** @type {ProductData[]} */
 let products = [];
 
-btn.addEventListener('click', () => {
-    getProducts();
-});
+window.addEventListener('DOMContentLoaded', init);
 
-downloadBtn.addEventListener('click', () => {
-    window.electronAPI.createWorkbook(products).then(buffer => {
+// html events
+searchBtn.addEventListener('click', getProducts);
+downloadBtn.addEventListener('click', btnDownloadOnClick);
+
+// electron events
+electronAPI.onInfoMessage(onInfoMessage);
+
+function init() {
+    // eslint-disable-next-line no-undef
+    new DataTable('#datatable');
+
+    getCategories('aliexpress');
+    getCategories('mercadolibre');
+}
+
+function btnDownloadOnClick() {
+    electronAPI.createWorkbook(products).then(buffer => {
         const byteArray = new Uint8Array(buffer);
-        const a = window.document.createElement('a');
+        const a = document.createElement('a');
 
         a.href = window.URL.createObjectURL(new Blob([byteArray], { type: 'application/octet-stream' }));
         a.download = 'download.xlsx';
@@ -29,19 +44,19 @@ downloadBtn.addEventListener('click', () => {
         // Remove anchor from body
         document.body.removeChild(a)
     });
-});
+}
 
-window.addEventListener('DOMContentLoaded', () => {
-    // eslint-disable-next-line no-undef
-    new DataTable('#datatable');
-
-    window.electronAPI.getCategories('aliexpress').then(categories => {
-        categorySelectors.aliexpress = new CategorySelector('#category-wrapper #aliexpress', categories);
+function getCategories(source) {
+    console.log("getting categories from " + source);
+    electronAPI.getCategories(source).then(categories => {
+        const wrapperSelector = '#category-wrapper #' + source;
+        console.log('selector', wrapperSelector);
+        categorySelectors[source] = new CategorySelector(wrapperSelector, categories);
         console.log(categorySelectors);
     });
-});
+}
 
-window.electronAPI.onInfoMessage((_event, message) => {
+function onInfoMessage(_event, message) {
     const maxScrollTop = messagesContainer.scrollHeight - messagesContainer.clientHeight;
     const scrollDelta = maxScrollTop - messagesContainer.scrollTop;
 
@@ -52,11 +67,11 @@ window.electronAPI.onInfoMessage((_event, message) => {
     if (scrollToBottom) {
         messagesContainer.scroll(0, messagesContainer.scrollHeight);
     }
-});
+}
 
 async function getProducts() {
     console.log('getting products');
-    btn.setAttribute('disabled', true);
+    searchBtn.setAttribute('disabled', true);
     loadingIndicator.style.display = '';
     messagesContainer.textContent = '';
     messagesContainer.style.display = '';
@@ -66,7 +81,7 @@ async function getProducts() {
 
     let tmpProds = [];
     for (const [source, categorySelector] of Object.entries(categorySelectors)) {
-        tmpProds = await window.electronAPI.scrap(source, categorySelector.getSelection());
+        tmpProds = await electronAPI.scrap(source, categorySelector.getSelection());
         products.push(...tmpProds);
     }
 
@@ -98,7 +113,7 @@ async function getProducts() {
         destroy: true,
     });
 
-    btn.removeAttribute('disabled');
+    searchBtn.removeAttribute('disabled');
     loadingIndicator.style.display = 'none';
     messagesContainer.style.display = 'none';
 
@@ -145,7 +160,7 @@ class CategorySelector {
     }
 
     filterCategories() {
-        const term = normalizeText(document.querySelector('#category-search').value);
+        const term = normalizeText(document.querySelector('.category-search').value);
         const regexp = new RegExp(term);
 
         this.visibleCategories = [];
@@ -173,7 +188,7 @@ class CategorySelector {
         this.element.innerHTML = '';
 
         const searchInput = document.createElement('input');
-        searchInput.id = 'category-search';
+        searchInput.className = 'category-search';
         searchInput.style.flexGrow = '1';
         searchInput.onkeydown = ({ key }) => {
             if (key === 'Enter') {
@@ -200,7 +215,7 @@ class CategorySelector {
     }
 
     renderCategories() {
-        const existingUl = document.querySelector('#categories-list');
+        const existingUl = document.querySelector('.categories-list');
 
         if (existingUl) {
             existingUl.remove();
@@ -258,7 +273,7 @@ class CategorySelector {
                 liElement.append(ulElement);
             }
 
-            console.log('2', { liElement });
+            // console.log('2', { liElement });
 
             return liElement;
         };
@@ -267,7 +282,7 @@ class CategorySelector {
         ulElement.style.listStyle = 'none';
         ulElement.style.overflow = 'auto';
         ulElement.style.height = '300px';
-        ulElement.id = 'categories-list';
+        ulElement.className = 'categories-list';
 
         const liNodes = [];
         for (const child of this.visibleCategories) {

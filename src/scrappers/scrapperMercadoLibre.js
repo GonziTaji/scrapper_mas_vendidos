@@ -1,5 +1,6 @@
 const { JSDOM } = require('jsdom');
 
+module.exports = scrapperMercadoLibre;
 
 /**
  * @async
@@ -7,7 +8,7 @@ const { JSDOM } = require('jsdom');
  * @param {boolean} retried 
  * @returns Promise<ProductData[]>
  */
-export default async function scrapperMercadoLibre(url, retried = false) {
+async function scrapperMercadoLibre(url, retried = false) {
     /* @type {ProductData[]} */
     const data = [];
 
