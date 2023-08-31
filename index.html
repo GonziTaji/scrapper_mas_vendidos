@@ -10,15 +10,59 @@
         integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <title>Document</title>
+
+    <style>
+        :root {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+            --border-color: rgb(30, 31, 27);
+        }
+
+        #category-wrapper {
+            padding: 0.75rem;
+            /* border: 1px solid var(--border-color); */
+        }
+
+        #category-wrapper>div {
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+        }
+
+        ul.categories-list {
+            padding-left: 0;
+        }
+
+        ul.categories-list ul {
+            padding: 0.25rem 0rem 1rem 2rem;
+        }
+
+        .search-wrapper {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        input.category-search {
+            flex-grow: 1;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="category-wrapper" style="display: flex; gap:0.25rem; padding: 0.25rem">
-        <div id="aliexpress" style="border: 1px solid black;"></div>
-        <div id="mercadolibre" style="border: 1px solid black;"></div>
+    <div style="max-width: 900px; margin: auto;">
+        <div id="category-wrapper" style="display: flex; gap:0.25rem; padding: 0.25rem">
+            <div>
+                <h2>Categorias Aliexpress</h2>
+                <div id="aliexpress"></div>
+            </div>
+
+            <div>
+                <h2>Categorias Mercado Libre</h2>
+                <div id="mercadolibre"></div>
+            </div>
+        </div>
     </div>
 
-    <div style="display:flex; gap:0.25rem; margin: 1rem 0;">
+    <div style="display:flex; justify-items: stretch; gap:0.25rem; margin: 1rem 0;">
         <button id="btn">Generate</button>
         <button id="download-btn" disabled>Download</button>
     </div>
@@ -27,10 +71,12 @@
         <span>Loading...</span>
     </div>
 
-    <textarea id="messages-container" style="margin: 2rem 0; border: 1px solid black; height: 120px; width: 100%; overflow: scroll; resize: vertical; display: none;" readonly>
+    <textarea id="messages-container"
+        style="margin: 2rem 0; border: 1px solid black; height: 120px; width: 100%; overflow: scroll; resize: vertical; display: none;"
+        readonly>
     </textarea>
 
-    <div id="products" style="padding:1rem; border:1px solid gray;">
+    <div id="products" style="padding:1rem; border:1px solid gray; max-height: 90vh;">
         <table id="datatable">
             <thead>
                 <tr>
@@ -51,6 +97,16 @@
     </div>
 
     <script src='./renderer.js'></script>
+
+    <!-- wip -->
+    <template>
+        <li id="category-item">
+            <input type="checkbox" />
+            <label></label>
+
+
+        </li>
+    </template>
 
     <script type="module"> </script>
 </body>
