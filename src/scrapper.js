@@ -8,7 +8,7 @@ module.exports = {
     getMercadolibreCategoriesByParent,
     scrapper,
     generateWorkbook,
-}
+};
 
 /**
  * @returns {ParentChildrenCategory[]}
@@ -22,9 +22,9 @@ function getAliexpressCategoriesByParent() {
         const parent = category.parent_name;
 
         if (parents.has(parent)) {
-            parents.set(parent, [...parents.get(parent), category])
+            parents.set(parent, [...parents.get(parent), category]);
         } else {
-            parents.set(parent, [category])
+            parents.set(parent, [category]);
         }
     }
 
@@ -35,8 +35,8 @@ function getAliexpressCategoriesByParent() {
         categories.push({
             category_name: parentName,
             children,
-        })
-    })
+        });
+    });
 
     return categories;
 }
@@ -51,7 +51,7 @@ function getAliexpressCategories() {
 }
 
 function getMercadolibreCategoriesByParent() {
-  const rawCategories = mlCategories;
+    const rawCategories = mlCategories;
 
     const parents = new Map();
 
@@ -59,9 +59,9 @@ function getMercadolibreCategoriesByParent() {
         const parent = category.parent_name;
 
         if (parents.has(parent)) {
-            parents.set(parent, [...parents.get(parent), category])
+            parents.set(parent, [...parents.get(parent), category]);
         } else {
-            parents.set(parent, [category])
+            parents.set(parent, [category]);
         }
     }
 
@@ -72,18 +72,18 @@ function getMercadolibreCategoriesByParent() {
         categories.push({
             category_name: parentName,
             children,
-        })
-    })
+        });
+    });
 
     return categories;
 }
 
 /**
- * 
+ *
  * @param {(category: string) => Promise<ProductData[]>} fn Scrapper function
- * @param {{name: string; label: string;}} categories 
- * @param {number} delay 
- * @param {{ scrapper_name: string, logger: (message: string) => void }} options 
+ * @param {{name: string; label: string;}} categories
+ * @param {number} delay
+ * @param {{ scrapper_name: string, logger: (message: string) => void }} options
  * @returns {Promise<ProductData[]>}
  */
 async function scrapper(fn, categories, delay, options) {
@@ -95,6 +95,9 @@ async function scrapper(fn, categories, delay, options) {
     let waitPromise;
 
     let processedCount = 0;
+
+    options.logger('## ----------------------- ');
+    options.logger('Scrapping start');
 
     for (const category of categories) {
         if (waitPromise) {
@@ -124,7 +127,7 @@ async function scrapper(fn, categories, delay, options) {
 }
 
 /**
- * 
+ *
  * @param {ProductData[]} products
  * @returns {XLSX.WorkBook}
  */
@@ -147,7 +150,7 @@ function generateWorkbook(products) {
             photo_display: '',
             ...result,
             category: result.category,
-            source: result.source
+            source: result.source,
         });
     }
 
@@ -168,27 +171,26 @@ function generateWorkbook(products) {
     XLSX.utils.sheet_set_array_formula(ws, photoDisplayRange, `IMAGE(${encodedPhotoUrlRange})`);
 
     for (let i = 2; i < output.length + 2; i++) {
-        ws["F" + i].z = '"$"#,##0_);\\("$"#,##0\\)';
+        ws['F' + i].z = '"$"#,##0_);\\("$"#,##0\\)';
     }
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "productos");
+    XLSX.utils.book_append_sheet(wb, ws, 'productos');
 
     return wb;
     // https://docs.sheetjs.com/docs/csf/features/formulae
 
     // escape html characters from url (there are some with commas)
     // =image("https://images-na.ssl-images-amazon.com/images/I/61R1bc4lmdL._AC_UL300_SR300%2C200_.jpg")
-
 }
 
 /**
- * 
- * @param {number} seconds 
+ *
+ * @param {number} seconds
  * @returns {Promise<void>}
  */
 function resolveInSeconds(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds*1000));
+    return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
 /**
@@ -205,7 +207,7 @@ function resolveInSeconds(seconds) {
  * category: string;
  * source: string;
  * }} ProductData
-*/
+ */
 
 /**
  * @typedef {{
@@ -224,7 +226,7 @@ function resolveInSeconds(seconds) {
  * category: string;
  * source: string;
  * }} ExcelData
-*/
+ */
 
 /** @typedef {{
  *      name: string,

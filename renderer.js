@@ -1,7 +1,7 @@
 /* global electronAPI */
 /* global DataTable */
 
-const searchBtn = document.querySelector('#btn');
+const searchBtn = document.querySelector('#scrap-btn');
 const downloadBtn = document.querySelector('#download-btn');
 const loadingIndicator = document.querySelector('#loading-indicator');
 const messagesContainer = document.querySelector('#messages-container');
@@ -73,8 +73,6 @@ async function getProducts() {
     console.log('getting products');
     searchBtn.setAttribute('disabled', true);
     loadingIndicator.style.display = '';
-    messagesContainer.textContent = '';
-    messagesContainer.style.display = '';
 
     /** @type {ProductData[]} */
     products = [];
@@ -114,9 +112,12 @@ async function getProducts() {
 
     searchBtn.removeAttribute('disabled');
     loadingIndicator.style.display = 'none';
-    messagesContainer.style.display = 'none';
 
     downloadBtn.removeAttribute('disabled');
+
+    setTimeout(() => {
+        document.querySelector('#products').scrollIntoView();
+    }, 300);
 }
 
 class CategorySelector {
@@ -133,6 +134,9 @@ class CategorySelector {
         this.categories = categories;
         /** @type {Category[]} */
         this.visibleCategories = categories;
+
+        this.parentLiTemplate = document.querySelector('#parent-category-item');
+        this.childLiTemplate = document.querySelector('#child-category');
 
         if (!this.element) {
             throw new Error('no element of selector ' + selector + ' found');
@@ -158,8 +162,8 @@ class CategorySelector {
         return selection;
     }
 
-    filterCategories() {
-        const term = normalizeText(this.element.querySelector('.category-search').value);
+    filterCategories(term) {
+        term = normalizeText(term);
         const regexp = new RegExp(term);
 
         this.visibleCategories = [];
@@ -184,94 +188,63 @@ class CategorySelector {
     }
 
     render() {
-        this.element.innerHTML = '';
-
-        const searchInput = document.createElement('input');
-        searchInput.className = 'category-search';
-        searchInput.onkeydown = ({ key }) => {
-            if (key === 'Enter') {
-                this.filterCategories();
-            }
+        /** @type {HTMLInputElement} */
+        const searchInput = this.element.querySelector('.category-search');
+        searchInput.oninput = (ev) => {
+            this.filterCategories(ev.currentTarget.value);
         };
-
-        const btnSearch = document.createElement('button');
-        btnSearch.textContent = 'Filtrar';
-        btnSearch.onclick = () => {
-            this.filterCategories();
-        };
-
-        const divElement = document.createElement('div');
-        divElement.className = 'search-wrapper';
-
-        divElement.append(searchInput, btnSearch);
-        console.log(divElement);
-        this.element.append(divElement);
 
         this.renderCategories();
     }
 
     renderCategories() {
-        const existingUl = this.element.querySelector('.categories-list');
+        const mainUl = this.element.querySelector('.categories-list');
+        mainUl.innerHTML = '';
 
-        if (existingUl) {
-            existingUl.remove();
-        }
-
-        /** @param {Category} category */
-        const categoryItem = (category) => {
-            const liElement = document.createElement('li');
-            const checkboxElement = document.createElement('input');
-            checkboxElement.setAttribute('type', 'checkbox');
-            checkboxElement.id = category.category_name;
+        const parentLiNodes = [];
+        for (const parentCategory of this.visibleCategories) {
+            const tmpClone = this.parentLiTemplate.content.cloneNode(true);
+            const liElement = tmpClone.querySelector('li');
+            const checkboxElement = tmpClone.querySelector('input[type=checkbox]');
+            checkboxElement.id = parentCategory.category_name;
 
             checkboxElement.onchange = (ev) => {
-                category.selected = ev.target.checked;
+                parentCategory.selected = ev.target.checked;
 
-                if (category.children) {
-                    for (const child of category.children) {
+                if (parentCategory.children) {
+                    for (const child of parentCategory.children) {
                         child.selected = ev.target.checked;
                         liElement
-                            .querySelectorAll(`input[type=checkbox]:not(#${category.category_name})`)
+                            .querySelectorAll(`input[type=checkbox]:not(#${parentCategory.category_name})`)
                             .forEach((e) => (e.checked = ev.target.checked));
                     }
                 }
             };
 
-            const label = document.createElement('label');
-            label.setAttribute('for', category.category_name);
-            label.textContent = category.category_name;
+            const label = tmpClone.querySelector('label');
+            label.setAttribute('for', parentCategory.category_name);
+            label.textContent = parentCategory.category_name;
 
-            liElement.append(checkboxElement, label);
+            if (parentCategory.children && parentCategory.children.length) {
+                const spanElement = tmpClone.querySelector('span');
+                spanElement.innerText = parentCategory.children.length + ' Subcategories';
 
-            if (category.children && category.children.length) {
-                const spanElement = document.createElement('span');
-                spanElement.style.fontStyle = 'italic';
-                spanElement.style.fontSize = '0.8em';
-                spanElement.style.paddingLeft = '0.25rem';
-                spanElement.innerText = category.children.length + ' Subcategories';
-
-                liElement.append(spanElement);
-
-                const ulElement = document.createElement('ul');
-                ulElement.style.listStyle = 'none';
+                const ulElement = tmpClone.querySelector('ul');
                 const liNodes = [];
 
-                for (const child of category.children) {
-                    const childLiElement = document.createElement('li');
-                    childLiElement.style = 'display: flex; align-items: center; padding 0.25rem; 0';
-                    const checkboxElement = document.createElement('input');
-                    checkboxElement.setAttribute('type', 'checkbox');
+                for (const child of parentCategory.children) {
+                    const tmpChildClone = this.childLiTemplate.content.cloneNode(true);
+                    const childLiElement = tmpChildClone.querySelector('li');
+                    const checkboxElement = tmpChildClone.querySelector('input[type=checkbox]');
                     checkboxElement.id = child.category_name;
 
                     checkboxElement.onchange = (ev) => {
                         child.selected = ev.target.checked;
                     };
 
-                    const label = document.createElement('label');
+                    const label = tmpChildClone.querySelector('label');
                     label.setAttribute('for', child.category_name);
                     label.textContent = child.category_name;
-
-                    childLiElement.append(checkboxElement, label);
 
                     liNodes.push(childLiElement);
                 }
@@ -280,25 +253,12 @@ class CategorySelector {
                 liElement.append(ulElement);
             }
 
-            // console.log('2', { liElement });
-
-            return liElement;
-        };
-
-        const ulElement = document.createElement('ul');
-        ulElement.style.listStyle = 'none';
-        ulElement.style.overflow = 'auto';
-        ulElement.style.height = '400px';
-        ulElement.className = 'categories-list';
-
-        const liNodes = [];
-        for (const child of this.visibleCategories) {
-            liNodes.push(categoryItem(child));
+            parentLiNodes.push(liElement);
         }
 
-        ulElement.append(...liNodes);
+        mainUl.append(...parentLiNodes);
 
-        this.element.append(ulElement);
+        this.element.append(mainUl);
     }
 }
 
