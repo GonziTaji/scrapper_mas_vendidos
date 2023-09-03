@@ -9,23 +9,26 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"
         integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <title>Document</title>
+    <title>Raspador productos m&aacute;s vendidos</title>
 
     <style>
         :root {
             font-family: Verdana, Geneva, Tahoma, sans-serif;
 
-            --border-color: rgb(30, 31, 27);
+            --border-color: rgb(43, 44, 39);
+        }
+
+        ul {
+            list-style: none;
         }
 
         #category-wrapper {
             padding: 0.75rem;
-            /* border: 1px solid var(--border-color); */
+            box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.5);
         }
 
         #category-wrapper>div {
-            border: 1px solid var(--border-color);
-            padding: 0.5rem;
+            padding: 0 0 1rem 1.5rem;
         }
 
         ul.categories-list {
@@ -38,45 +41,69 @@
 
         .search-wrapper {
             display: flex;
-            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+
+        button.action-button {
+            font-size: 1.2rem;
+            padding: 0.7rem 1.5rem 0.5rem 1.5rem;
         }
 
         input.category-search {
             flex-grow: 1;
+            padding: 0.25rem 0.5rem;
         }
     </style>
 </head>
 
 <body>
-    <div style="max-width: 900px; margin: auto;">
-        <div id="category-wrapper" style="display: flex; gap:0.25rem; padding: 0.25rem">
-            <div>
-                <h2>Categorias Aliexpress</h2>
-                <div id="aliexpress"></div>
+    <div style="max-width: 1200px; margin: auto; font-size: 1.2rem;">
+        <h3>Categor&iacute;as</h3>
+        <div id="category-wrapper" style="display: flex; gap: 0.5rem;">
+            <div style="width: 100%;">
+                <h4 style="margin-bottom: 0.5rem;">Aliexpress</h4>
+                <div id="aliexpress">
+                    <div class="search-wrapper">
+                        <input placeholder="Escriba para filtrar Categorias" type="text" class="category-search" />
+                    </div>
+                    <ul class="categories-list" style="overflow: auto; height: 400px;">
+                    </ul>
+                </div>
             </div>
 
-            <div>
-                <h2>Categorias Mercado Libre</h2>
-                <div id="mercadolibre"></div>
+            <div style="width: 100%">
+                <h4 style="margin-bottom: 0.5rem;">Mercado Libre</h4>
+                <div id="mercadolibre">
+                    <div class="search-wrapper">
+                        <input placeholder="Escriba para filtrar Categorias" type="text" class="category-search" />
+                    </div>
+                    <ul class="categories-list" style="overflow: auto; height: 400px;">
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div style="display:flex; justify-items: stretch; gap:0.25rem; margin: 1rem 0;">
-        <button id="btn">Generate</button>
-        <button id="download-btn" disabled>Download</button>
+        <div style="margin: 1rem 0">
+            <button class="action-button" id="scrap-btn">Obtener productos</button>
+        </div>
     </div>
 
     <div id="loading-indicator" style="display: none; margin: 1rem 0;">
         <span>Loading...</span>
     </div>
 
+    <span style="display: block; margin: 1rem 0 0.5rem 0.25rem">Output log</span>
     <textarea id="messages-container"
-        style="margin: 2rem 0; border: 1px solid black; height: 120px; width: 100%; overflow: scroll; resize: vertical; display: none;"
+        style="margin-bottom: 2rem 0; border: 1px solid black; height: 120px; width: 100%; overflow: scroll; resize: vertical;"
         readonly>
     </textarea>
 
-    <div id="products" style="padding:1rem; border:1px solid gray; max-height: 90vh;">
+    <div style="display: flex; gap: 1rem; align-items: center; padding: 2rem 0 1rem 0;">
+        <span style="display: block; margin: 1rem 0 0.5rem 0.25rem">Productos</span>
+        <button class="action-button" id="download-btn" disabled>Descargar Excel</button>
+    </div>
+
+    <div id="products" style="padding:1rem; border:1px solid gray; max-height: 90vh; overflow:auto">
         <table id="datatable">
             <thead>
                 <tr>
@@ -98,13 +125,19 @@
 
     <script src='./renderer.js'></script>
 
-    <!-- wip -->
-    <template>
-        <li id="category-item">
+    <template id="parent-category-item">
+        <li>
             <input type="checkbox" />
             <label></label>
+            <span style="font-style: italic; font-size: 0.8em; padding-left: 0.25;"></span>
+            <ul></ul>
+        </li>
+    </template>
 
-
+    <template id="child-category">
+        <li style="display: flex; align-items: center; padding: 0.25rem 0">
+            <input type="checkbox" />
+            <label></label>
         </li>
     </template>
 
