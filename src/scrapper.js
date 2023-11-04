@@ -1,11 +1,13 @@
 const aliCategories = require('./data/ali_categories.json');
 const mlCategories = require('./data/ml_categories.json');
+const fbCategories = require('./data/fb_categories.json');
 const XLSX = require('xlsx');
 
 module.exports = {
     getAliexpressCategories,
     getAliexpressCategoriesByParent,
     getMercadolibreCategoriesByParent,
+    getFalabellaCategoriesByParent,
     scrapper,
     generateWorkbook,
 };
@@ -48,6 +50,34 @@ function getAliexpressCategories() {
         name: category_url,
         label: category_name,
     }));
+}
+
+function getFalabellaCategoriesByParent() {
+    const rawCategories = fbCategories;
+
+    const parents = new Map();
+
+    for (const category of rawCategories) {
+        const parent = category.parent_name;
+
+        if (parents.has(parent)) {
+            parents.set(parent, [...parents.get(parent), category]);
+        } else {
+            parents.set(parent, [category]);
+        }
+    }
+
+    /** @type {ParentChildrenCategory[]} */
+    const categories = [];
+
+    parents.forEach((children, parentName) => {
+        categories.push({
+            category_name: parentName,
+            children,
+        });
+    });
+
+    return categories;
 }
 
 function getMercadolibreCategoriesByParent() {

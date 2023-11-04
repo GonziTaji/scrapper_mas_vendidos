@@ -25,6 +25,7 @@ function init() {
 
     getCategories('aliexpress');
     getCategories('mercadolibre');
+    getCategories('falabella');
 }
 
 function btnDownloadOnClick() {

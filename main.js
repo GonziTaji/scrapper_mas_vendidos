@@ -2,9 +2,16 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const XLSX = require('xlsx');
-const { generateWorkbook, getAliexpressCategoriesByParent, getMercadolibreCategoriesByParent, scrapper } = require('./src/scrapper');
+const {
+    generateWorkbook,
+    getAliexpressCategoriesByParent,
+    getMercadolibreCategoriesByParent,
+    scrapper,
+    getFalabellaCategoriesByParent,
+} = require('./src/scrapper');
 const scrapperAliexpress = require('./src/scrappers/scrapperAliexpress');
 const scrapperMercadoLibre = require('./src/scrappers/scrapperMercadoLibre');
+const scrapperFalabella = require('./src/scrappers/scrapperFalabella');
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -19,7 +26,7 @@ const createWindow = () => {
 
     ipcMain.handle('scrap', (_, source, categories) => scrap(source, categories, createLogger(win)));
     ipcMain.handle('createWorkbook', (_, payload) => createWorkbook(payload));
-    ipcMain.handle('get-categories', (_, source) => getCategories(source))
+    ipcMain.handle('get-categories', (_, source) => getCategories(source));
 
     win.loadFile('index.html');
 
@@ -34,13 +41,12 @@ app.whenReady().then(() => {
     });
 });
 
-
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
 /**
- * @param {string} source 
+ * @param {string} source
  * @param {{name: string, label: string}[]}
  * @param {{ (message) => void }} logger
  * @returns {ProductData[]}
@@ -57,10 +63,13 @@ async function scrap(source, categories, logger) {
             scrapperFn = scrapperMercadoLibre;
             break;
 
+        case 'falabella':
+            scrapperFn = scrapperFalabella;
+            break;
+
         default:
             throw new Error('Invalid scrapper source: ' + source);
     }
-
 
     const products = await scrapper(scrapperFn, categories, 1, { scrapper_name: source, logger });
 
@@ -68,27 +77,27 @@ async function scrap(source, categories, logger) {
 }
 
 /**
- * 
- * @param {BrowserWindow} win 
+ *
+ * @param {BrowserWindow} win
  */
 function createLogger(win) {
     return (message) => win.webContents.send('process-message', appendTimestamp(message));
 }
 
 function appendTimestamp(text) {
-    return (new Date()).toISOString() + ': ' + text;
+    return new Date().toISOString() + ': ' + text;
 }
 
 /**
- * 
- * @param {ProductData[]} products 
+ *
+ * @param {ProductData[]} products
  * @returns Buffer
  */
 async function createWorkbook(products) {
     const wb = generateWorkbook(products);
     const fileBuffer = XLSX.write(wb, {
         bookType: 'xlsx',
-        type: 'buffer'
+        type: 'buffer',
     });
 
     return fileBuffer;
@@ -96,11 +105,14 @@ async function createWorkbook(products) {
 
 function getCategories(source) {
     switch (source) {
-        case 'aliexpress': 
+        case 'aliexpress':
             return getAliexpressCategoriesByParent();
-        
+
         case 'mercadolibre':
             return getMercadolibreCategoriesByParent();
+
+        case 'falabella':
+            return getFalabellaCategoriesByParent();
 
         default:
             throw new Error('unhandled category source: ' + source);
