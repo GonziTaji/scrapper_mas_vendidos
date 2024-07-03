@@ -240,6 +240,25 @@ class CategorySelector {
                     checkboxElement.id = child.category_name;
 
                     checkboxElement.onchange = (ev) => {
+                        if (ev.target.checked) {
+                            const categoryName = ev.target.id;
+                            const container = document.createElement('div');
+                            container.classList.add('selected-category');
+                            container.innerHTML = `
+                                <i class="i-times"></i><span>${categoryName}</span>
+                            `;
+                            console.log(container);
+                            const i = container.querySelector('i.i-times');
+                            console.log(i);
+                            i.onclick = () => {
+                                child.selected = false;
+                                container.remove();
+                            };
+                            console.log(this.element);
+
+                            this.element.querySelector('.selected-categories').append(container);
+                        }
+
                         child.selected = ev.target.checked;
                     };
 
