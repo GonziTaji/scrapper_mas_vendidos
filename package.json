@@ -1,6 +1,6 @@
 {
   "name": "electron_mas_vendidos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Aplicación de escritorio para obtener productos mas vendidos de diferentes portales de e-coomerce",
   "main": "main.js",
   "scripts": {
