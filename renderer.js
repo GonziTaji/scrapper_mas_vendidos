@@ -40,8 +40,6 @@ function btnDownloadOnClick() {
         document.body.appendChild(a);
         a.click();
 
-        alert('File saved!');
-
         // Remove anchor from body
         document.body.removeChild(a);
     });
