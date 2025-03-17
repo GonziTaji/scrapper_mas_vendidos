@@ -41,10 +41,10 @@ async function scrapperAliexpress(url) {
 
         for (let i = 0; i < cards.length; i++) {
             const card = cards[i];
-    
+
             /** @type {ProductData} */
             const itemData = {
-                position: i+1,
+                position: i + 1,
                 name: card.querySelector('h3')?.textContent,
                 url: card.getAttribute('href')?.replace('//', 'https://'),
                 photo: card.querySelector('img')?.getAttribute('src')?.replace('//', 'https://'),
@@ -52,49 +52,18 @@ async function scrapperAliexpress(url) {
                 stars: '', //card.querySelector('[class*=manhattan--evaluation]')?.textContent,
                 reviews: '',
                 prices: [],
-                sold: card.querySelector('.lp_t > div:nth-child(2)')?.textContent?.split(' ')[0],
+                sold: card.querySelector('.lq_t > div:nth-child(2)')?.textContent?.split(' ')[0],
                 category: categoryName,
                 source: 'Aliexpress'
             };
 
-            rawPrices = card.querySelector('.lp_et').textContent.split('CLP').map(getDigits)
+            rawPrices = card.querySelector('.lq_et').textContent.split('CLP').map(getDigits)
             rawPrices.shift() // Elimina primer elemento que es string vacío por el primer CLP
             itemData.price = rawPrices[0]
-            
+
             if (rawPrices[1]) {
-                itemData.prices.push({type: 'anterior', price: rawPrices[1]})
+                itemData.prices.push({ type: 'anterior', price: rawPrices[1] })
             }
-
-            // const priceElements = [
-            //     ...card.querySelectorAll('[class*=manhattan--price-]:not([class*=manhattan--price--])'),
-            // ];
-            // const subPriceElement = card.querySelector('[class*=manhattan--subPrice--]');
-    
-            // if (subPriceElement) {
-            //     priceElements.push(subPriceElement);
-            // }
-    
-            // for (const element of priceElements) {
-            //     // eslint-disable-next-line no-unused-vars
-            //     const [_, priceType] = element.className.split('--');
-    
-            //     const priceValue = element.textContent && element.textContent.match(/\d/g).join('');
-    
-            //     if (priceValue) {
-            //         if (priceType === 'subPrice') {
-            //             itemData.price = priceValue;
-            //         } else {
-            //             itemData.prices.push({ type: priceType.replace('-', ' '), price: priceValue });
-            //         }
-            //     }
-            // }
-    
-            // if (!itemData.price && itemData.prices && itemData.prices[0]) {
-            //     itemData.price = itemData.prices[0].price;
-            // }
-
-            // itemData.price = getDigits(itemData.price);
-
             data.push(itemData);
         }
     } catch (e) {
